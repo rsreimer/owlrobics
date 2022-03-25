@@ -7,6 +7,7 @@ import {
     LineBasicMaterial,
     Mesh,
     MeshBasicMaterial,
+    Object3D,
     PerspectiveCamera,
     Scene,
     TextureLoader,
@@ -44,8 +45,8 @@ const leftLegPng = {
 
 const rightLegPng = {
     name: 'right-leg',
-    width: 39.331,
-    height: 41.401
+    width: 39.414,
+    height: 41.437
 }
 
 const leftUpperWingPng = {
@@ -87,6 +88,10 @@ function getAngle(a: Landmark, b: Landmark): number {
 
 let pose: LandmarkList = testPose;
 
+function getJoint(): Object3D {
+    return new Object3D();
+}
+
 function getPart(part: PngPart): Mesh {
     const loader = new TextureLoader();
     const geometry = new BoxGeometry(part.width, part.height, 0);
@@ -107,8 +112,8 @@ function renderPoseLines(pose: LandmarkList, lines: Line[]) {
         const to = pose[POSE_CONNECTIONS[i][1]];
 
         line.geometry.setFromPoints([
-            new Vector3(from.x, from.y, from.z),
-            new Vector3(to.x, to.y, to.z),
+            new Vector3(from.x - 200, from.y + 100, from.z),
+            new Vector3(to.x - 200, to.y + 100, to.z),
         ]);
     })
 }
@@ -123,46 +128,84 @@ async function renderScene(canvas: HTMLCanvasElement) {
     camera.updateProjectionMatrix();
 
     const torso = getPart(torsoPng);
+    const neck = getJoint();
     const head = getPart(headPng);
+    const leftHip = getJoint();
     const leftLeg = getPart(leftLegPng);
+    const rightHip = getJoint();
     const rightLeg = getPart(rightLegPng);
+    const leftShoulder = getJoint();
     const leftUpperWing = getPart(leftUpperWingPng);
+    const leftElbow = getJoint();
     const leftLowerWing = getPart(leftLowerWingPng);
+    const rightShoulder = getJoint();
     const rightUpperWing = getPart(rightUpperWingPng);
+    const rightElbow = getJoint();
     const rightLowerWing = getPart(rightLowerWingPng);
 
-    torso.add(head);
-    head.position.y = 60;
+    torso.add(neck);
+    neck.position.y = 35;
 
-    torso.add(leftLeg);
-    leftLeg.position.x = 15;
-    leftLeg.position.y = -30;
+    neck.add(head);
+    head.position.y = 25;
+
+    torso.add(leftHip);
+    leftHip.position.x = 20;
+    leftHip.position.y = -20;
+    leftHip.position.z = -1;
+
+    leftHip.add(leftLeg);
+    leftLeg.position.x = -5;
+    leftLeg.position.y = -7;
     leftLeg.position.z = -1;
 
-    torso.add(rightLeg);
-    rightLeg.position.x = -15;
-    rightLeg.position.y = -30;
+    torso.add(rightHip);
+    rightHip.position.x = -20;
+    rightHip.position.y = -20;
+    rightHip.position.z = -1;
+
+    rightHip.add(rightLeg);
+    rightLeg.position.x = 2;
+    rightLeg.position.y = -7;
     rightLeg.position.z = -1;
 
-    torso.add(leftUpperWing);
-    leftUpperWing.position.x = 30;
-    leftUpperWing.position.y = 18;
+    torso.add(leftShoulder);
+    leftShoulder.position.x = 22;
+    leftShoulder.position.y = 17;
+
+    leftShoulder.add(leftUpperWing);
+    leftUpperWing.position.x = 10;
+    leftUpperWing.position.y = 2;
     leftUpperWing.position.z = -1;
 
-    leftUpperWing.add(leftLowerWing);
-    leftLowerWing.position.x = 28;
-    leftLowerWing.position.y = 6;
-    leftLowerWing.position.z = 1;
+    leftUpperWing.add(leftElbow);
+    leftElbow.position.x = 7;
+    leftElbow.position.y = 12;
+    leftElbow.position.z = 1;
 
-    torso.add(rightUpperWing);
-    rightUpperWing.position.x = -30;
-    rightUpperWing.position.y = 18;
+    leftElbow.add(leftLowerWing);
+    leftLowerWing.position.x = 20;
+    leftLowerWing.position.y = -8;
+    leftLowerWing.position.z = -1;
+
+    torso.add(rightShoulder);
+    rightShoulder.position.x = -23;
+    rightShoulder.position.y = 17;
+
+    rightShoulder.add(rightUpperWing);
+    rightUpperWing.position.x = -10;
+    rightUpperWing.position.y = 2;
     rightUpperWing.position.z = -1;
 
-    rightUpperWing.add(rightLowerWing);
-    rightLowerWing.position.x = -28;
-    rightLowerWing.position.y = 6;
-    rightLowerWing.position.z = 1;
+    rightUpperWing.add(rightElbow);
+    rightElbow.position.x = -7;
+    rightElbow.position.y = 12;
+    rightElbow.position.z = 1;
+
+    rightElbow.add(rightLowerWing);
+    rightLowerWing.position.x = -20;
+    rightLowerWing.position.y = -8;
+    rightLowerWing.position.z = -1;
 
     scene.add(torso);
 
@@ -191,11 +234,17 @@ async function renderScene(canvas: HTMLCanvasElement) {
             }
         })
 
-        //renderPoseLines(scaledPose, poseLines);
+        renderPoseLines(scaledPose, poseLines);
 
         if (scaledPose) {
-            torso.rotation.z = getAngle(scaledPose[POSE_LANDMARKS.LEFT_SHOULDER], scaledPose[POSE_LANDMARKS.RIGHT_SHOULDER]);
-            head.rotation.z = getAngle(scaledPose[POSE_LANDMARKS.LEFT_EYE], scaledPose[POSE_LANDMARKS.RIGHT_EYE]) - torso.rotation.z;
+            torso.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.RIGHT_SHOULDER], scaledPose[POSE_LANDMARKS.LEFT_SHOULDER]);
+            neck.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.RIGHT_EYE], scaledPose[POSE_LANDMARKS.LEFT_EYE]) - torso.rotation.z;
+
+            leftShoulder.rotation.z = getAngle(scaledPose[POSE_LANDMARKS.LEFT_SHOULDER], scaledPose[POSE_LANDMARKS.LEFT_ELBOW])
+            leftElbow.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.LEFT_ELBOW], scaledPose[POSE_LANDMARKS.LEFT_WRIST])
+
+            rightShoulder.rotation.z = getAngle(scaledPose[POSE_LANDMARKS.RIGHT_SHOULDER], scaledPose[POSE_LANDMARKS.RIGHT_ELBOW])
+            rightElbow.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.RIGHT_ELBOW], scaledPose[POSE_LANDMARKS.RIGHT_WRIST])
         }
 
         renderer.render(scene, camera);
