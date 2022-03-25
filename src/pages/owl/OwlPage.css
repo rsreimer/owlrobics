@@ -1,0 +1,50 @@
+.owl {
+    position: relative;
+}
+
+.owl img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: center;
+}
+
+.owl .head {
+    width: 316px;
+    height: 257px;
+}
+
+.owl .left-leg {
+    width: 149px;
+    height: 157px;
+}
+
+.owl .right-leg {
+    width: 149px;
+    height: 157px;
+}
+
+.owl .torso {
+    width: 222px;
+    height: 262px;
+}
+
+.owl .left-upper-wing {
+    width: 98px;
+    height: 138px;
+}
+
+.owl .right-upper-wing {
+    width: 98px;
+    height: 138px;
+}
+
+.owl .left-lower-wing {
+    width: 98px;
+    height: 138px;
+}
+
+.owl .right-lower-wing {
+    width: 98px;
+    height: 138px;
+}
