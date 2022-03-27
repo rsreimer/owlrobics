@@ -15,9 +15,19 @@ import {
     WebGLRenderer
 } from "three";
 import {useEffect, useRef} from "react";
-import {Landmark, LandmarkList, POSE_CONNECTIONS, POSE_LANDMARKS} from "@mediapipe/pose";
-import {testPose} from "../../test-pose";
+import {
+    Landmark,
+    LandmarkList,
+    POSE_CONNECTIONS,
+    POSE_LANDMARKS,
+    POSE_LANDMARKS_LEFT,
+    POSE_LANDMARKS_RIGHT
+} from "@mediapipe/pose";
+import {testPose2} from "../../test-pose-2";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {PoseEstimator} from "../../core/poseEstimator";
+
+const DEBUG = true;
 
 interface PngPart {
     name: string;
@@ -82,13 +92,22 @@ function getCenter(landmarks: LandmarkList): Landmark {
 }
 
 function getAngle(a: Landmark, b: Landmark): number {
-    const m = (b.y - a.y) / (b.x - a.x);
-    return Math.atan(m);
+    return Math.atan2(b.y - a.y, b.x - a.x);
 }
 
-let pose: LandmarkList = testPose;
+let pose: LandmarkList = testPose2;
 
 function getJoint(): Object3D {
+    if (DEBUG) {
+        const geometry = new BoxGeometry(2, 2, 1);
+        const material = new MeshBasicMaterial({
+            wireframe: true,
+            color: 0xff0000
+        })
+
+        return new Mesh(geometry, material);
+    }
+
     return new Object3D();
 }
 
@@ -102,18 +121,14 @@ function getPart(part: PngPart): Mesh {
     return new Mesh(geometry, material);
 }
 
-function animateBetween(steps: number, from: number, to: number) {
-    return (frame: number) => (to - from) * ((frame % steps) / steps) + from;
-}
-
 function renderPoseLines(pose: LandmarkList, lines: Line[]) {
     lines.forEach((line, i) => {
         const from = pose[POSE_CONNECTIONS[i][0]];
         const to = pose[POSE_CONNECTIONS[i][1]];
 
         line.geometry.setFromPoints([
-            new Vector3(from.x - 200, from.y + 100, from.z),
-            new Vector3(to.x - 200, to.y + 100, to.z),
+            new Vector3(from.x, from.y, 0),
+            new Vector3(to.x, to.y, 0),
         ]);
     })
 }
@@ -145,6 +160,7 @@ async function renderScene(canvas: HTMLCanvasElement) {
 
     torso.add(neck);
     neck.position.y = 35;
+    neck.position.z = 1;
 
     neck.add(head);
     head.position.y = 25;
@@ -211,17 +227,25 @@ async function renderScene(canvas: HTMLCanvasElement) {
 
     // POSE
     const poseLines = POSE_CONNECTIONS.map(() => {
-        const material = new LineBasicMaterial({color: 0xaaaaff});
+        const material = new LineBasicMaterial({
+            color: 0x0000ff,
+        });
         const geometry = new BufferGeometry();
         return new Line(geometry, material);
     });
-    scene.add(...poseLines);
+    const poseGroup = new Mesh(
+        new BoxGeometry(2, 2, 2),
+        new MeshBasicMaterial({color: 0xffbbbb})
+    ).add(...poseLines);
+
+    poseGroup.position.x = pose[0].x - 120;
+    poseGroup.position.y = pose[0].y + 50;
+
+    scene.add(poseGroup);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
 
     camera.position.z = 250;
-
-    let frame = 0;
-
-    const rotatePi = animateBetween(600, -Math.PI * 2, Math.PI * 2);
 
     function animate() {
         requestAnimationFrame(animate);
@@ -234,25 +258,42 @@ async function renderScene(canvas: HTMLCanvasElement) {
             }
         })
 
+        controls.update();
         renderPoseLines(scaledPose, poseLines);
 
         if (scaledPose) {
-            torso.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.RIGHT_SHOULDER], scaledPose[POSE_LANDMARKS.LEFT_SHOULDER]);
-            neck.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.RIGHT_EYE], scaledPose[POSE_LANDMARKS.LEFT_EYE]) - torso.rotation.z;
+            const betweenShoulders = getCenter([
+                scaledPose[POSE_LANDMARKS.LEFT_SHOULDER],
+                scaledPose[POSE_LANDMARKS.RIGHT_SHOULDER]
+            ])
 
-            leftShoulder.rotation.z = getAngle(scaledPose[POSE_LANDMARKS.LEFT_SHOULDER], scaledPose[POSE_LANDMARKS.LEFT_ELBOW])
-            leftElbow.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.LEFT_ELBOW], scaledPose[POSE_LANDMARKS.LEFT_WRIST])
+            const betweenHips = getCenter([
+                scaledPose[POSE_LANDMARKS.LEFT_HIP],
+                scaledPose[POSE_LANDMARKS.RIGHT_HIP]
+            ])
 
-            rightShoulder.rotation.z = getAngle(scaledPose[POSE_LANDMARKS.RIGHT_SHOULDER], scaledPose[POSE_LANDMARKS.RIGHT_ELBOW])
-            rightElbow.rotation.z = -getAngle(scaledPose[POSE_LANDMARKS.RIGHT_ELBOW], scaledPose[POSE_LANDMARKS.RIGHT_WRIST])
+            torso.rotation.z = Math.PI / 2 + getAngle(betweenShoulders, betweenHips);
+            neck.rotation.z = getAngle(scaledPose[POSE_LANDMARKS.RIGHT_EYE], scaledPose[POSE_LANDMARKS.LEFT_EYE]) - torso.rotation.z;
+
+            leftShoulder.rotation.z = -.7 + getAngle(scaledPose[POSE_LANDMARKS.LEFT_SHOULDER], scaledPose[POSE_LANDMARKS.LEFT_ELBOW]) - torso.rotation.z;
+            leftElbow.rotation.z = Math.PI / 4 + getAngle(scaledPose[POSE_LANDMARKS.LEFT_ELBOW], scaledPose[POSE_LANDMARKS.LEFT_WRIST]) - leftShoulder.rotation.z - torso.rotation.z;
+
+            rightShoulder.rotation.z = .7 + Math.PI + getAngle(scaledPose[POSE_LANDMARKS.RIGHT_SHOULDER], scaledPose[POSE_LANDMARKS.RIGHT_ELBOW]) - torso.rotation.z;
+            rightElbow.rotation.z = -.7 + Math.PI + getAngle(scaledPose[POSE_LANDMARKS.RIGHT_ELBOW], scaledPose[POSE_LANDMARKS.RIGHT_WRIST]) - rightShoulder.rotation.z - torso.rotation.z;
+
+            leftHip.rotation.z = Math.PI / 2 + getAngle(scaledPose[POSE_LANDMARKS.LEFT_HIP], scaledPose[POSE_LANDMARKS_LEFT.LEFT_KNEE]) - torso.rotation.z;
+            rightHip.rotation.z = Math.PI / 2 + getAngle(scaledPose[POSE_LANDMARKS.RIGHT_HIP], scaledPose[POSE_LANDMARKS_RIGHT.RIGHT_KNEE]) - torso.rotation.z;
         }
 
         renderer.render(scene, camera);
-        frame++;
     }
 
     animate();
 }
+
+setTimeout(() => {
+    console.log(pose);
+}, 8000)
 
 PoseEstimator.start();
 PoseEstimator.addListener(p => pose = p);

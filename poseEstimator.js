@@ -1,7 +1,5 @@
-import {LandmarkList, Pose} from "@mediapipe/pose";
+import {Pose} from "@mediapipe/pose";
 import {Camera} from "@mediapipe/camera_utils";
-
-export type PoseListener = (pose: LandmarkList) => void;
 
 const poseFinder = new Pose({
     locateFile: (file) => {
@@ -18,7 +16,7 @@ poseFinder.setOptions({
     minTrackingConfidence: 0.5
 });
 
-const poseListeners: PoseListener[] = [];
+const poseListeners = [];
 
 poseFinder.onResults(({poseLandmarks}) => {
     poseListeners.forEach(fn => fn(poseLandmarks));
@@ -37,6 +35,6 @@ const camera = new Camera(videoElement, {
 export const PoseEstimator = {
     start: () => camera.start(),
     stop: () => camera.stop(),
-    addListener: (listener: PoseListener) => poseListeners.push(listener),
-    removeListener: (listener: PoseListener) => poseListeners.splice(poseListeners.indexOf(listener), 1),
+    addListener: (listener) => poseListeners.push(listener),
+    removeListener: (listener) => poseListeners.splice(poseListeners.indexOf(listener), 1),
 }
