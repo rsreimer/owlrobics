@@ -1,16 +1,38 @@
 import {OwlScene} from "./owl-scene/owl-scene";
+import {PoseEstimator} from "./core/pose-estimator";
+import {LandmarkList} from "@mediapipe/pose";
+import {StickFigureScene} from "./stick-figure-scene/stick-figure-scene";
 
 export function main() {
-    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    let currentPose: LandmarkList | null = null;
 
-    const owlScene = new OwlScene(canvas);
+    const poseEstimator = new PoseEstimator();
+
+    poseEstimator.addListener(pose => {
+        currentPose = pose.map(p => {
+            return {
+                x: p.x * 100 - 50,
+                y: -(p.y * 100 - 50),
+                z: p.z * 100 - 50,
+            }
+        })
+    });
+
+    poseEstimator.start();
+
+    const owlScene = new OwlScene(document.getElementById('owl-canvas') as HTMLCanvasElement);
+    const stickFigureScene = new StickFigureScene(document.getElementById('stick-figure-canvas') as HTMLCanvasElement);
 
     owlScene.build();
+    stickFigureScene.build();
 
     function animate() {
         requestAnimationFrame(animate);
 
-        owlScene.update();
+        if (currentPose) {
+            owlScene.update(currentPose);
+            stickFigureScene.update(currentPose);
+        }
     }
 
     animate();

@@ -35,7 +35,6 @@ export class PoseEstimator {
         });
     }
 
-
     start() {
         this.camera.start()
     }
@@ -53,6 +52,8 @@ export class PoseEstimator {
     }
 
     private notifyListeners({poseLandmarks}: Results) {
-        this.listeners.forEach(fn => fn(poseLandmarks));
+        if (poseLandmarks) {
+            this.listeners.forEach(fn => fn(poseLandmarks));
+        }
     }
 }
