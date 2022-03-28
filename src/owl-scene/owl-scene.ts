@@ -1,7 +1,7 @@
 import {LandmarkList, POSE_LANDMARKS, POSE_LANDMARKS_LEFT, POSE_LANDMARKS_RIGHT} from "@mediapipe/pose";
 import {buildOwl, Owl} from "./owl";
 import {getAngle, getCenter} from "../core/math";
-import {BaseScene} from "../core/BaseScene";
+import {BaseScene} from "../core/base-scene";
 
 export class OwlScene extends BaseScene {
     private owl: Owl | null = null;

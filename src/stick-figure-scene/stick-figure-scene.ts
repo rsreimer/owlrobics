@@ -1,7 +1,7 @@
 import {Vector3} from "three";
 import {LandmarkList, POSE_CONNECTIONS} from "@mediapipe/pose";
 import {buildStickFigure, StickFigure} from "./stick-figure";
-import {BaseScene} from "../core/BaseScene";
+import {BaseScene} from "../core/base-scene";
 
 export class StickFigureScene extends BaseScene {
     private stickFigure: StickFigure | null = null;

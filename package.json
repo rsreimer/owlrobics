@@ -2,6 +2,11 @@
   "name": "owl",
   "version": "0.1.0",
   "private": true,
+  "author": {
+    "name": "Rasmus Sundgaard Reimer",
+    "email": "rsr@it-minds.dk"
+  },
+  "license": "MIT",
   "dependencies": {
     "@mediapipe/camera_utils": "^0.3.1640029074",
     "@mediapipe/control_utils": "^0.6.1629159505",
@@ -10,8 +15,7 @@
     "three": "^0.139.0"
   },
   "scripts": {
-    "start": "npx webpack serve --mode=development",
-    "build": "npx webpack build"
+    "start": "npx webpack serve --mode=development"
   },
   "devDependencies": {
     "@types/three": "^0.138.0",
