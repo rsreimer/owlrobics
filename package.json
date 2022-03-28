@@ -12,7 +12,6 @@
     "@mediapipe/control_utils": "^0.6.1629159505",
     "@mediapipe/drawing_utils": "^0.3.1620248257",
     "@mediapipe/pose": "^0.5.1635988162",
-    "copy-webpack-plugin": "^10.2.4",
     "three": "^0.139.0"
   },
   "scripts": {
@@ -24,6 +23,7 @@
     "ts-loader": "^9.2.8",
     "typescript": "^4.6.3",
     "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.7.4"
+    "webpack-dev-server": "^4.7.4",
+    "copy-webpack-plugin": "^10.2.4"
   }
 }
