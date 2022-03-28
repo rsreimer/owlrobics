@@ -3,5 +3,5 @@
 ## MediaPipe
 https://mediapipe.dev/
 
-## three.hs
+## three.js
 https://threejs.org/
