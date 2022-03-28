@@ -1,26 +1,13 @@
-import {Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer} from "three";
+import {Vector3} from "three";
 import {LandmarkList, POSE_CONNECTIONS} from "@mediapipe/pose";
 import {buildStickFigure, StickFigure} from "./stick-figure";
+import {BaseScene} from "../core/BaseScene";
 
-export class StickFigureScene {
-    private scene: Scene;
-    private camera: PerspectiveCamera;
-    private renderer: WebGLRenderer;
-
+export class StickFigureScene extends BaseScene {
     private stickFigure: StickFigure | null = null;
 
     constructor(canvas: HTMLCanvasElement) {
-        this.scene = new Scene();
-        this.scene.background = new Color('white');
-
-        const {width, height} = canvas.getBoundingClientRect();
-
-        this.renderer = new WebGLRenderer({canvas});
-        this.renderer.setSize(width, height);
-
-        this.camera = new PerspectiveCamera();
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
+        super(canvas);
     }
 
     build() {
@@ -45,6 +32,7 @@ export class StickFigureScene {
 
             node.position.x = poseNode.x;
             node.position.y = poseNode.y;
+            node.position.z = poseNode.z;
         })
 
         stickFigure.lines.forEach((line, i) => {
@@ -52,11 +40,11 @@ export class StickFigureScene {
             const to = pose[POSE_CONNECTIONS[i][1]];
 
             line.geometry.setFromPoints([
-                new Vector3(from.x, from.y, 0),
-                new Vector3(to.x, to.y, 0),
+                new Vector3(from.x, from.y, from.z),
+                new Vector3(to.x, to.y, to.z),
             ]);
         })
 
-        this.renderer.render(this.scene, this.camera);
+        this.render();
     }
 }

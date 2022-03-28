@@ -1,27 +1,13 @@
-import {Color, PerspectiveCamera, Scene, WebGLRenderer} from "three";
 import {LandmarkList, POSE_LANDMARKS, POSE_LANDMARKS_LEFT, POSE_LANDMARKS_RIGHT} from "@mediapipe/pose";
 import {buildOwl, Owl} from "./owl";
 import {getAngle, getCenter} from "../core/math";
+import {BaseScene} from "../core/BaseScene";
 
-export class OwlScene {
-    private scene: Scene;
-    private camera: PerspectiveCamera;
-    private renderer: WebGLRenderer;
-
+export class OwlScene extends BaseScene {
     private owl: Owl | null = null;
 
     constructor(canvas: HTMLCanvasElement) {
-        this.scene = new Scene();
-        this.scene.background = new Color('white');
-
-        const {width, height} = canvas.getBoundingClientRect();
-
-        this.renderer = new WebGLRenderer({canvas});
-        this.renderer.setSize(width, height);
-
-        this.camera = new PerspectiveCamera();
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
+        super(canvas);
     }
 
     build() {
@@ -60,6 +46,6 @@ export class OwlScene {
         owl.leftHip.rotation.z = Math.PI / 2 + getAngle(pose[POSE_LANDMARKS.LEFT_HIP], pose[POSE_LANDMARKS_LEFT.LEFT_KNEE]) - owl.torso.rotation.z;
         owl.rightHip.rotation.z = Math.PI / 2 + getAngle(pose[POSE_LANDMARKS.RIGHT_HIP], pose[POSE_LANDMARKS_RIGHT.RIGHT_KNEE]) - owl.torso.rotation.z;
 
-        this.renderer.render(this.scene, this.camera);
+        this.render();
     }
 }
