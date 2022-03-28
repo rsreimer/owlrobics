@@ -1,7 +1,7 @@
-import {LandmarkList, Pose, Results} from "@mediapipe/pose";
+import {Pose, Results} from "@mediapipe/pose";
 import {Camera} from "@mediapipe/camera_utils";
 
-export type PoseListener = (pose: LandmarkList) => void;
+export type PoseListener = (results: Results) => void;
 
 export class PoseEstimator {
     private camera: Camera;
@@ -51,9 +51,7 @@ export class PoseEstimator {
         this.listeners.splice(this.listeners.indexOf(listener), 1)
     }
 
-    private notifyListeners({poseLandmarks}: Results) {
-        if (poseLandmarks) {
-            this.listeners.forEach(fn => fn(poseLandmarks));
-        }
+    private notifyListeners(results: Results) {
+        this.listeners.forEach(fn => fn(results));
     }
 }

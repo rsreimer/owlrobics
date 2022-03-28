@@ -1,31 +1,31 @@
 import {Vector3} from "three";
-import {LandmarkList, POSE_CONNECTIONS} from "@mediapipe/pose";
+import {POSE_CONNECTIONS, Results} from "@mediapipe/pose";
 import {buildStickFigure, StickFigure} from "./stick-figure";
 import {BaseScene} from "../core/base-scene";
+import {Scene} from "../core/scene";
 
-export class StickFigureScene extends BaseScene {
+export class StickFigureScene extends BaseScene implements Scene {
     private stickFigure: StickFigure | null = null;
 
     constructor(canvas: HTMLCanvasElement) {
         super(canvas);
+        this.build();
     }
 
-    build() {
-        this.stickFigure = buildStickFigure();
-
-        this.stickFigure.anchor.position.y = 100;
-
-        this.camera.position.z = 250;
-
-        this.scene.add(this.stickFigure.anchor);
-    }
-
-    update(pose: LandmarkList) {
+    update(results: Results) {
         const stickFigure = this.stickFigure;
 
-        if (!stickFigure) {
+        if (!stickFigure || !results.poseLandmarks) {
             return;
         }
+
+        const pose = results.poseLandmarks.map(p => {
+            return {
+                x: p.x * 100 - 50,
+                y: -(p.y * 100 - 50),
+                z: p.z * 100 - 50,
+            }
+        })
 
         stickFigure.nodes.forEach((node, i) => {
             const poseNode = pose[i];
@@ -46,5 +46,15 @@ export class StickFigureScene extends BaseScene {
         })
 
         this.render();
+    }
+
+    private build() {
+        this.stickFigure = buildStickFigure();
+
+        this.stickFigure.anchor.position.y = 100;
+
+        this.camera.position.z = 250;
+
+        this.scene.add(this.stickFigure.anchor);
     }
 }

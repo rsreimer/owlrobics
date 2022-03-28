@@ -1,28 +1,31 @@
-import {LandmarkList, POSE_LANDMARKS, POSE_LANDMARKS_LEFT, POSE_LANDMARKS_RIGHT} from "@mediapipe/pose";
+import {POSE_LANDMARKS, POSE_LANDMARKS_LEFT, POSE_LANDMARKS_RIGHT, Results} from "@mediapipe/pose";
 import {buildOwl, Owl} from "./owl";
 import {getAngle, getCenter} from "../core/math";
 import {BaseScene} from "../core/base-scene";
+import {Scene} from "../core/scene";
 
-export class OwlScene extends BaseScene {
+export class OwlScene extends BaseScene implements Scene {
     private owl: Owl | null = null;
 
     constructor(canvas: HTMLCanvasElement) {
         super(canvas);
+        this.build();
     }
 
-    build() {
-        this.owl = buildOwl();
-        this.scene.add(this.owl.anchor);
-
-        this.camera.position.z = 250;
-    }
-
-    update(pose: LandmarkList) {
+    update(results: Results) {
         const owl = this.owl;
 
-        if (!owl) {
+        if (!owl || !results.poseLandmarks) {
             return;
         }
+
+        const pose = results.poseLandmarks.map(p => {
+            return {
+                x: p.x * 100 - 50,
+                y: -(p.y * 100 - 50),
+                z: p.z * 100 - 50,
+            }
+        })
 
         const betweenShoulders = getCenter([
             pose[POSE_LANDMARKS.LEFT_SHOULDER],
@@ -47,5 +50,12 @@ export class OwlScene extends BaseScene {
         owl.rightHip.rotation.z = Math.PI / 2 + getAngle(pose[POSE_LANDMARKS.RIGHT_HIP], pose[POSE_LANDMARKS_RIGHT.RIGHT_KNEE]) - owl.torso.rotation.z;
 
         this.render();
+    }
+
+    private build() {
+        this.owl = buildOwl();
+        this.scene.add(this.owl.anchor);
+
+        this.camera.position.z = 250;
     }
 }
